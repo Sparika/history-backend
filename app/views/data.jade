@@ -1,0 +1,24 @@
+extends layout
+
+block content
+  h1= title
+  each val in data
+    - var c64 = btoa(val.client_id)
+    h2 #[a(href='/data/client/#{c64}') #{val.client_id}]
+
+    h4 domain
+    ul
+      each domain in val.domain
+        - var d64 = btoa(domain)
+        li #[a(href='/data/domain/#{d64}') #{domain}]
+
+    h4 scope
+    ul
+      each scope in val.scope
+        li #{scope}
+    h4 claims
+    ul
+      each claims in val.claims
+        li #{claims}
+
+  #{userCount} users
