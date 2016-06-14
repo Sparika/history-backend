@@ -7,19 +7,24 @@ block content
       p #{redirect_uri}
 
   h4 domain
-      ul
-        each domain in data.domain
-          - var d64 = btoa(domain)
-          li #[a(href='/data/domain/#{d64}') #{domain}]
+    ul
+      each domain in data.domain
+        - var d64 = btoa(domain)
+        li #[a(href='/data/domain/#{d64}') #{domain}]
 
-      h4 scope
-      ul
-        each scope in data.scope
-          li #{scope}
+  h4 scope
+    ul
+      each scope in data.scope
+        li #{scope}
 
-      h4 claims
-      ul
-        each claims in data.claims
-          li #{claims}
+  h4 claims
+    ul
+      each claims in data.claims
+        li #{claims}
+
+  h4 users
+    ul
+      each user in data.user
+        li #[a(href='/data/user/#{user.user_id}') #{user.user_id}]
 
   a(href='/data') back

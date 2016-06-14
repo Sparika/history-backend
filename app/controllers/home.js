@@ -33,29 +33,34 @@ router.get('/data', function(req, res, next) {
   })
 })
 
+// Will return a function using factory's closure
+// to start a promise
+function nextPromiseFactory(dataSet, user){
+    //This will return promise
+    //using factory's closure
+    return function(){
+        return Data.pushScope(dataSet, user)
+    }
+}
+// Chain promise by setting the then
+// of the previous promise with next
+// next is a function that returns a promise
+function chainPromise(prev, next){
+    return prev.then(next)
+}
+
 function registerData(user, submitedData, res){
   var promiseHead = {}
-  var nextPromise = function(sub){
-    return new Promise(function(resolve, reject){
-      Data.pushScope(sub, user, resolve, reject)
-    })
-  }
-  var chainPromise = function(prev, next){
-    return prev.then(function(success){
-      return next
-    })
-  }
-  var endPromise = function(chain, res){
-  }
   //Chain promise
   for(var i=0; i<submitedData.length; i++){
-    if(i == 0) promiseChain = nextPromise(submitedData[i])
-    else promiseChain = chainPromise(promiseChain, nextPromise(submitedData[i]))
+    if(i == 0){
+      //init promise head
+      promiseHead = nextPromiseFactory(submitedData[i], user)()
+    }else {
+      promiseHead = chainPromise(promiseHead, nextPromiseFactory(submitedData[i], user))
+    }
   }
-  promiseChain.then(function(success){
-    res.sendStatus(200);
-  })
-
+  chainPromise(promiseHead, function(success){res.sendStatus(200)})
 }
 
 router.post('/data', function(req, res){
@@ -63,12 +68,13 @@ router.post('/data', function(req, res){
   //Register ID
   new Promise(
   function(resolve, reject){
-    User.findOrAdd(req.body.ID, req.body.UA, resolve, reject)
+    User.findOrAdd(req.body.ID, req.headers['user-agent'], resolve, reject)
   })
-  .then(function(user){registerData(user._id, submitedData, res)})
+  .then(function(user){registerData(user, submitedData, res)})
   .catch(function(err){
-    console.log('error with user '+submitedData.ID+' on '+submitedData.UA)
-    registerData(-1, submitedData, res)
+    console.log(err)
+    console.log('error with user '+req.body.ID+' on '+req.headers['user-agent'])
+    //registerData(-1, submitedData, res)
   })
 })
 
@@ -84,66 +90,53 @@ router.get('/data/domain/:domain', function(req, res, next) {
 })
 
 router.get('/data/client/:client', function(req, res, next) {
-  Data.find({client_id: atob(req.params.client)}, function (err, data) {
-    console.log(data)
+  Data
+    .find({_id: req.params.client})
+    //populate to fin user_id instead of _id
+    .populate('user')
+    .exec(function(err, data){
+      if(err) return next(err)
+      res.render('client', {
+        title: data[0].client_id,
+        data: data[0],
+        btoa: btoa
+      })
+    })
+})
+
+router.get('/data/user/:user', function(req, res, next) {
+  User
+    .find({user_id: req.params.user}, function (err, user) {
     if(err) return next(err)
-    res.render('client', {
-      title: atob(req.params.client),
-      data: data[0],
+    res.render('user', {
+      title: req.params.user,
+      user: user[0],
       btoa: btoa
     })
   })
 })
 
-
-//router.get('/createTest', function(req, res){
-//  Data.create({client_id: 'X0X0', domain: 'localhost', scope: ['hellow', 'world']}, function(err, obj){
-//    if(err) console.log(err)
-//    else res.render('index', {
-//               title: 'Data',
-//               data: obj
-//             })
-//  })
-//})
-//
-//router.get('/UpdateTest', function(req, res){
-//  var submitedData = [{"domain":"https://www.facebook.com/login.php","scope":"number1","client_id":"274266067164"},
-//                      {"domain":"Another domain","scope":"and another scope","clientID":"274266067164"},
-//                      {"domain":"https://www.facebook.com/login.php","scope":"number2","client_id":"138566025676"},
-//                      {"domain":"https://www.facebook.com/login.php","scope":"third_scope","client_id":"138566025676"},
-//                      {"domain":"https://accounts.google.com/ServiceLogin","scope":"profile%2Bemail","clientID":"622686756548-j87bjniqthcq1e4hbf1msh3fikqn892p.apps.googleusercontent.com"}]
-//  var promiseHead = {}
-//  var nextPromise = function(sub){
-//    return new Promise(function(resolve, reject){
-//      Data.pushScope(sub, resolve, reject)
-//    })
-//  }
-//  var chainPromise = function(prev, next){
-//    return prev.then(function(success){
-//      return next
-//    })
-//  }
-//  //Chain promise
-//  for(var i=0; i<=submitedData.length; i++){
-//  console.log(i)
-//    if(i == 0) promiseChain = nextPromise(submitedData[i])
-//    else if (i<submitedData.length) promiseChain = chainPromise(promiseChain, nextPromise(submitedData[i]))
-//    else{
-//      promiseChain.then(function(success){
-//        res.redirect('/data')
-//      })
-//    }
-//  }
-//})
-
-router.get('/rm', function(req, res){
-  Data.remove({}, function (err) {
-    if (err) return handleError(err);
-    // removed!
-    User.remove({}, function (err) {
-      if (err) return handleError(err);
-      // removed!
-      res.redirect('/data')
-    });
-  });
+router.get('/api/all', function(req, res, next){
+  User.find({}, function(err, user){
+    if(err)
+        user = err
+    Data.find({}, function(err, data){
+      if(err)
+        data = err
+      var dump = {user: user, data: data}
+      res.send(dump)
+    })
+  })
 })
+
+//router.get('/rm', function(req, res){
+//  Data.remove({}, function (err) {
+//    if (err) return handleError(err);
+//    // removed!
+//    User.remove({}, function (err) {
+//      if (err) return handleError(err);
+//      // removed!
+//      res.redirect('/data')
+//    });
+//  });
+//})

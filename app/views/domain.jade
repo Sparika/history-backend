@@ -3,10 +3,7 @@ extends layout
 block content
   h1= title
   each val in data
-    h3 client
-    - var c64 = btoa(val.client_id)
-    p.
-      #[a(href='/data/client/#{c64}') #{val.client_id}]
+    h3 client #[a(href='/data/client/#{val._id}') #{val.client_id}]
 
     each redirect_uri in val.redirect_uri
       p #{redirect_uri}

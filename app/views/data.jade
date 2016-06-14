@@ -3,8 +3,7 @@ extends layout
 block content
   h1= title
   each val in data
-    - var c64 = btoa(val.client_id)
-    h2 #[a(href='/data/client/#{c64}') #{val.client_id}]
+    h2 #[a(href='/data/client/#{val._id}') #{val.client_id}]
 
     h4 domain
     ul

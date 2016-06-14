@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  h1= title
+
+  h4 User-Agent
+    ul
+      each ua in user.ua
+        li #{ua}
+
+  h4 Commited data
+    ul
+      each data in user.data
+        li
+            h2 #[a(href='/data/client/#{data}') #{data}]
+
+  a(href='/data') back
