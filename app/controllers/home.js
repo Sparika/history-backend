@@ -129,14 +129,14 @@ router.get('/api/all', function(req, res, next){
   })
 })
 
-//router.get('/rm', function(req, res){
-//  Data.remove({}, function (err) {
-//    if (err) return handleError(err);
-//    // removed!
-//    User.remove({}, function (err) {
-//      if (err) return handleError(err);
-//      // removed!
-//      res.redirect('/data')
-//    });
-//  });
-//})
+router.get('/rm', function(req, res){
+  Data.remove({}, function (err) {
+    if (err) return handleError(err);
+    // removed!
+    User.remove({}, function (err) {
+      if (err) return handleError(err);
+      // removed!
+      res.redirect('/data')
+    });
+  });
+})

@@ -30,41 +30,42 @@ DataSchema.statics.pushScope = function(submitedData, user){
                             function(err, res){
         if(err) {
           reject(err)
-        }
-        //Add domain if needed
-        if(res.domain.indexOf(submitedData.domain) == -1) {
-          res.domain.push(submitedData.domain)
-        }
-        //Add redirect_uri if needed
-        if(res.redirect_uri.indexOf(submitedData.redirect_uri) == -1) {
-          res.redirect_uri.push(submitedData.redirect_uri)
-        }
-        //Add user_id if needed
-        if(res.user.indexOf(user._id) == -1) {
-          res.user.push(user._id)
-        }
-        //Add claims if needed
-        if(res.claims.indexOf(submitedData.claims) == -1) {
-          res.claims.push(submitedData.claims)
-        }
-        //Add scope if needed
-        if (res.scope.indexOf(submitedData.scope) == -1) {
-          res.scope.push(submitedData.scope)
-        }
-
-        var rTest = function(){
-            resolve()
-        }
-
-        //Save user then save data
-        if(user.data.indexOf(res._id) == -1){
-            user.data.push(res._id)
-            var saveRes =
-            //This return a promise
-            user.save()
-            .then(res.save().then(rTest))
         } else {
-            res.save().then(rTest)
+            //Add domain if needed
+            if(res.domain.indexOf(submitedData.domain) == -1) {
+              res.domain.push(submitedData.domain)
+            }
+            //Add redirect_uri if needed
+            if(res.redirect_uri.indexOf(submitedData.redirect_uri) == -1) {
+              res.redirect_uri.push(submitedData.redirect_uri)
+            }
+            //Add user_id if needed
+            if(res.user.indexOf(user._id) == -1) {
+              res.user.push(user._id)
+            }
+            //Add claims if needed
+            if(res.claims.indexOf(submitedData.claims) == -1) {
+              res.claims.push(submitedData.claims)
+            }
+            //Add scope if needed
+            if (res.scope.indexOf(submitedData.scope) == -1) {
+              res.scope.push(submitedData.scope)
+            }
+
+            var rTest = function(){
+                resolve()
+            }
+
+            //Save user then save data
+            if(user.data.indexOf(res._id) == -1){
+                user.data.push(res._id)
+                var saveRes =
+                //This return a promise
+                user.save()
+                .then(res.save().then(rTest))
+            } else {
+                res.save().then(rTest)
+            }
         }
       })
     })
