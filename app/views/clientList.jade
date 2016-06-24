@@ -1,0 +1,9 @@
+extends layout
+
+block content
+  h1= title
+  each val in data
+    h2 #[a(href='/data/client/#{val._id}') #{val.client_id}]
+
+  - var clientCount = data.length
+  #{clientCount} Clients

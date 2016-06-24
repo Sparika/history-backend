@@ -1,7 +1,8 @@
 var express = require('express'),
   router = express.Router(),
   mongoose = require('mongoose'),
-  Data = mongoose.model('Data'),
+  Data = mongoose.model('Client'),
+  Domain = mongoose.model('Domain'),
   User = mongoose.model('User'),
   Promise = require('promise'),
   btoa = require('btoa'),
@@ -20,10 +21,8 @@ router.get('/data', function(req, res, next) {
   Data.find(function (err, data) {
     if(err) return next(err)
   User.count(function(err, userCount){
-    User.find(function(err, users){console.log(users)})
-    console.log(userCount)
     if(err) return next(err)
-    res.render('data', {
+    res.render('overview', {
       title: 'Collected data',
       data: data,
       userCount: userCount,
@@ -39,7 +38,14 @@ function nextPromiseFactory(dataSet, user){
     //This will return promise
     //using factory's closure
     return function(){
-        return Data.pushScope(dataSet, user)
+       // Find domain for later
+       var domainName = dataSet.domain.split('/')[2]
+       var url = dataSet.domain
+       return new Promise(function(resolve, reject){
+            Domain.findOrAdd(domainName, url, resolve, reject)
+       }).then(function(domain){
+            return Data.update(dataSet, domain, user)
+       })
     }
 }
 // Chain promise by setting the then
@@ -78,15 +84,37 @@ router.post('/data', function(req, res){
   })
 })
 
+router.get('/data/domain', function(req, res, next){
+    Domain.find({}, function (err, domain) {
+        res.render('domainList', {
+          title: 'Identity Domains',
+          data: domain,
+          btoa: btoa
+        })
+    })
+})
+
 router.get('/data/domain/:domain', function(req, res, next) {
-  Data.find({domain: atob(req.params.domain)}, function (err, data) {
+  Domain.find({domain: atob(req.params.domain)})
+  .populate('clients')
+  .exec(function (err, data) {
     if(err) return next(err)
     res.render('domain', {
       title: atob(req.params.domain),
-      data: data,
+      data: data[0],
       btoa: btoa
     })
   })
+})
+
+router.get('/data/client', function(req, res, next){
+    Data.find(function (err, data) {
+        if(err) return next(err)
+        res.render('clientList', {
+          title: 'Clients',
+          data: data
+        })
+    })
 })
 
 router.get('/data/client/:client', function(req, res, next) {
@@ -104,6 +132,17 @@ router.get('/data/client/:client', function(req, res, next) {
     })
 })
 
+router.get('/data/user', function(req, res, next){
+    User
+        .find({}, function(err, users){
+        if(err) return next(err)
+        res.render('userList', {
+            title: 'User list',
+            users: users
+        })
+    })
+})
+
 router.get('/data/user/:user', function(req, res, next) {
   User
     .find({user_id: req.params.user}, function (err, user) {
@@ -114,6 +153,32 @@ router.get('/data/user/:user', function(req, res, next) {
       btoa: btoa
     })
   })
+})
+
+router.get('/data/scope', function(req, res, next){
+    Data
+        .find({}, function(err, clients){
+        if(err) return next(err)
+        var scopes = []
+        var count = []
+        for(var i=0; i<clients.length; i++){
+            for(var j=0; j<clients[i].scope.length; j++){
+                if(scopes.indexOf(clients[i].scope[j]) == -1){
+                    scopes.push(clients[i].scope[j])
+                    count[clients[i].scope[j]] = 1
+                } else {
+                    count[clients[i].scope[j]] ++
+                }
+
+
+            }
+        }
+        res.render('scopeList', {
+            title: 'Scope list',
+            scopes: scopes,
+            clientCount: count
+        })
+    })
 })
 
 router.get('/api/all', function(req, res, next){

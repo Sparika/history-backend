@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  h1= title
+  - var scopeCount = scopes.length
+  #{scopeCount} Scope
+  ul
+  each scope in scopes
+    - var count = clientCount[scope]
+    li #[a(href='/data/scope/#{scope}') #{scope}] for #{count} client

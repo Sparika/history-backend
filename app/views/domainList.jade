@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  h1= title
+  each val in data
+    - var d64 = btoa(val.domain)
+    h2 #[a(href='/data/domain/#{d64}') #{val.domain}]
+
+  - var domainCount = data.length
+  #{domainCount} identity domains

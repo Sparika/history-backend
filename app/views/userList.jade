@@ -1,0 +1,9 @@
+extends layout
+
+block content
+  h1= title
+  - var clientCount = users.length
+  #{clientCount} User
+  ul
+  each user in users
+    li #[a(href='/data/user/#{user.user_id}') #{user.user_id}]

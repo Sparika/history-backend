@@ -2,7 +2,12 @@ extends layout
 
 block content
   h1= title
-  each val in data
+  h3 URLs
+  ul
+  each url in data.urls
+    li #{url}
+
+  each val in data.clients
     h3 client #[a(href='/data/client/#{val._id}') #{val.client_id}]
 
     each redirect_uri in val.redirect_uri
