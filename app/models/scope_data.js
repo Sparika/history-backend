@@ -26,6 +26,7 @@ ClientSchema.statics.findByClientID = function(client_id, cb){
 ClientSchema.statics.update = function(submitedData, domain, user){
     var dataSchema = this
   return new Promise(function(resolve, reject){
+    if(submitedData.client_id)
       dataSchema.findOneAndUpdate({client_id: submitedData.client_id},
                             { $setOnInsert: {scope: [], claims: [], redirect_uri: [], domain: [], user:[]}},
                             {new:true, upsert:true},
@@ -58,14 +59,12 @@ ClientSchema.statics.update = function(submitedData, domain, user){
               res.scope.push(submitedData.scope)
             }
             //Then add individual scopes
-            var splitedScopes = submitedData.scope.split(/%3A|%20|\+|,|\s/)
-            for(var i=0; i<splitedScopes.length; i++){
-                if(res.scope.indexOf(splitedScopes[i]) == -1 && splitedScopes[i] != "" )
-                    res.scope.push(splitedScopes[i])
-            }
-
-            var rTest = function(){
-                resolve()
+            if(submitedData.scope){
+                var splitedScopes = submitedData.scope.split(/%3A|%20|\+|,|\s/)
+                for(var i=0; i<splitedScopes.length; i++){
+                    if(res.scope.indexOf(splitedScopes[i]) == -1 && splitedScopes[i] != "" )
+                        res.scope.push(splitedScopes[i])
+                }
             }
 
             //Found domain, update and save it
