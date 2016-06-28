@@ -45,13 +45,13 @@ function nextPromiseFactory(dataSet, user){
             return Domain.findOrAdd(domainName, url, resolve, reject)
        }).then(function(domain){
             return Data.update(dataSet, domain, user)
-       }).catch(err){
+       }).catch(function(err){
             console.log('Failed with dataSet:')
             console.log(dataSet)
             console.log(user)
             console.log('Reason is:')
             console.log(err)
-       }
+       })
     }
 }
 // Chain promise by setting the then
