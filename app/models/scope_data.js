@@ -34,63 +34,58 @@ ClientSchema.statics.update = function(submitedData, domain, user){
         if(err) {
           reject(err)
         } else {
-            //Add scope if needed
-            if (res.scope.indexOf(submitedData.scope) == -1) {
-              res.scope.push(submitedData.scope)
-            }
-            //Add response_type if needed
-            if (res.response_type.indexOf(submitedData.response_type) == -1) {
-              res.response_type.push(submitedData.response_type)
-            }
-            //Add acr_values if needed
-            if (res.acr_values.indexOf(submitedData.acr_values) == -1) {
-              res.acr_values.push(submitedData.acr_values)
-            }
-            //Add user_id if needed
-            if(res.user.indexOf(user._id) == -1) {
-              res.user.push(user._id)
-            }
-            //Add claims if needed
-            if(res.claims.indexOf(submitedData.claims) == -1) {
-              res.claims.push(submitedData.claims)
-            }
-            //Add scope if needed
-            if (res.scope.indexOf(submitedData.scope) == -1) {
-              res.scope.push(submitedData.scope)
-            }
-            //Then add individual scopes
-            if(submitedData.scope){
-                var splitedScopes = submitedData.scope.split(/%3A|%20|\+|,|\s/)
-                for(var i=0; i<splitedScopes.length; i++){
-                    if(res.scope.indexOf(splitedScopes[i]) == -1 && splitedScopes[i] != "" )
-                        res.scope.push(splitedScopes[i])
+            try{
+                //Add scope if needed
+                if (res.scope.indexOf(submitedData.scope) == -1)
+                  res.scope.push(submitedData.scope)
+                //Add response_type if needed
+                if (res.response_type.indexOf(submitedData.response_type) == -1)
+                  res.response_type.push(submitedData.response_type)
+                //Add acr_values if needed
+                if (res.acr_values.indexOf(submitedData.acr_values) == -1)
+                  res.acr_values.push(submitedData.acr_values)
+                //Add user_id if needed
+                if(res.user.indexOf(user._id) == -1)
+                  res.user.push(user._id)
+                //Add claims if needed
+                if(res.claims.indexOf(submitedData.claims) == -1)
+                  res.claims.push(submitedData.claims)
+                //Add scope if needed
+                if (res.scope.indexOf(submitedData.scope) == -1)
+                  res.scope.push(submitedData.scope)
+                //Then add individual scopes
+                if(submitedData.scope){
+                    var splitedScopes = submitedData.scope.split(/%3A|%20|\+|,|\s/)
+                    for(var i=0; i<splitedScopes.length; i++){
+                        if(res.scope.indexOf(splitedScopes[i]) == -1 && splitedScopes[i] != "" )
+                            res.scope.push(splitedScopes[i])
+                    }
                 }
-            }
-
-            //Found domain, update and save it
-            if(domain.clients.indexOf(res._id) == -1){
-                domain.clients.push(res._id)
-            }
-            if(res.domain.indexOf(domain.domain) == -1){
-                res.domain.push(domain.domain)
-            }
-            //Save domain
-            console.log('saving domain')
-            domain.save()
-            //Save user then save data
-            .then(function(domain){
-                if(user.data.indexOf(res._id) == -1){
+                //Found domain, update and save it
+                if(domain.clients.indexOf(res._id) == -1)
+                    domain.clients.push(res._id)
+                if(res.domain.indexOf(domain.domain) == -1)
+                    res.domain.push(domain.domain)
+                //Found user, update and save it
+                if(user.data.indexOf(res._id) == -1)
                     user.data.push(res._id)
-                }
-                if(user.domain.indexOf(domain.domain) == -1){
+                if(user.domain.indexOf(domain.domain) == -1)
                     user.domain.push(domain.domain)
-                }
-                //This return a promise
-                console.log('Saving everything')
-                user.save()
-                .then(res.save())
+
+                //Save
+                domain.save()
+                .then(user.save)
+                .then(res.save)
+                .catch(function(e){
+                    console.log('Failed to save something')
+                    reject(e)
+                })
                 .then(resolve)
-            })
+
+            } catch(e){
+                console.log('Failed updating something')
+                reject(e)
+            }
         }
       })
     })

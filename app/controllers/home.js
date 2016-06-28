@@ -42,10 +42,16 @@ function nextPromiseFactory(dataSet, user){
        var domainName = dataSet.domain.split('/')[2]
        var url = dataSet.domain
        return new Promise(function(resolve, reject){
-            Domain.findOrAdd(domainName, url, resolve, reject)
+            return Domain.findOrAdd(domainName, url, resolve, reject)
        }).then(function(domain){
             return Data.update(dataSet, domain, user)
-       })
+       }).catch(err){
+            console.log('Failed with dataSet:')
+            console.log(dataSet)
+            console.log(user)
+            console.log('Reason is:')
+            console.log(err)
+       }
     }
 }
 // Chain promise by setting the then
