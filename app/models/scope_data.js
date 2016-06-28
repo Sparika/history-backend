@@ -26,7 +26,7 @@ ClientSchema.statics.findByClientID = function(client_id, cb){
 ClientSchema.statics.update = function(submitedData, domain, user){
     var dataSchema = this
   return new Promise(function(resolve, reject){
-    if(submitedData.client_id)
+    if(submitedData.client_id){
       dataSchema.findOneAndUpdate({client_id: submitedData.client_id},
                             { $setOnInsert: {scope: [], claims: [], redirect_uri: [], domain: [], user:[]}},
                             {new:true, upsert:true},
@@ -88,7 +88,10 @@ ClientSchema.statics.update = function(submitedData, domain, user){
             }
         }
       })
-    })
+    } else {
+        reject('No client')
+    }
+  })
 }
 
 var UserSchema = new Schema({
