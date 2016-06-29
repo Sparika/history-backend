@@ -39,7 +39,8 @@ function nextPromiseFactory(dataSet, user){
     //using factory's closure
     return function(){
        // Find domain for later
-       var domainName = dataSet.domain.split('/')[2]
+       var fqdn = dataSet.domain.split('/')
+       var domainName = fqdn.length > 2 ? dataSet.domain.split('/')[2] : dataSet.domain
        var url = dataSet.domain
        return new Promise(function(resolve, reject){
             return Domain.findOrAdd(domainName, url, resolve, reject)
@@ -48,7 +49,7 @@ function nextPromiseFactory(dataSet, user){
        }).catch(function(err){
             console.log('Failed with dataSet:')
             console.log(dataSet)
-            console.log(user)
+            console.log(user.ua)
             console.log('Reason is:')
             console.log(err)
        })
@@ -200,14 +201,14 @@ router.get('/api/all', function(req, res, next){
   })
 })
 
-router.get('/rm', function(req, res){
-  Data.remove({}, function (err) {
-    if (err) return handleError(err);
-    // removed!
-    User.remove({}, function (err) {
-      if (err) return handleError(err);
-      // removed!
-      res.redirect('/data')
-    });
-  });
-})
+//router.get('/rm', function(req, res){
+//  Data.remove({}, function (err) {
+//    if (err) return handleError(err);
+//    // removed!
+//    User.remove({}, function (err) {
+//      if (err) return handleError(err);
+//      // removed!
+//      res.redirect('/data')
+//    });
+//  });
+//})
