@@ -17,7 +17,7 @@ var ClientSchema = new Schema({
 var UserSchema = new Schema({
   user_id: String,
   ua: [String],
-  data: [{ type: Schema.Types.ObjectId, ref: 'Data' }],
+  data: [{ type: Schema.Types.ObjectId, ref: 'Client' }],
   domain: [{type: String, ref: 'Domain'}]
 })
 

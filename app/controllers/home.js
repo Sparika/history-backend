@@ -139,16 +139,16 @@ router.get('/data/client/:client', function(req, res, next) {
     })
 })
 
-router.get('/data/user', function(req, res, next){
-    User
-        .find({}, function(err, users){
-        if(err) return next(err)
-        res.render('userList', {
-            title: 'User list',
-            users: users
-        })
-    })
-})
+//router.get('/data/user', function(req, res, next){
+//    User
+//        .find({}, function(err, users){
+//        if(err) return next(err)
+//        res.render('userList', {
+//            title: 'User list',
+//            users: users
+//        })
+//    })
+//})
 
 router.get('/data/user/:user', function(req, res, next) {
   User
@@ -200,6 +200,74 @@ router.get('/api/all', function(req, res, next){
     })
   })
 })
+
+router.get('/api/user/:user', function(req, res, next){
+    User.find({user_id: req.params.user}, function(err, user){
+        res.send(user||err)
+    })
+})
+
+router.get('/api/client/:client', function(req, res, next){
+    Data.find({client_id: req.params.client}, function(err, data){
+        res.send(data||err)
+    })
+})
+
+router.get('/api/client/fqdn/:fqdn', function(req, res, next){
+    Data.find({redirect_uri: {'$regex': req.params.fqdn, "$options": "i" }}, function(err, data){
+        res.send(data||err)
+    })
+})
+
+function getFQDN(URL){
+    if(URL && URL.split('/').length > 3)
+        return URL.split('/')[2]
+    else
+        return 'invalid FQDN'
+}
+
+router.get('/api/user/:user/view', function(req, res, next){
+    User.findOne({user_id: req.params.user})
+    .populate('data')
+    .exec(function(err, user){
+        if(err) res.send(err)
+        var dataObject = {user: user.user_id,
+                          fqdnClient: []}
+        var min = 0
+        for(var i=0; i<user.data.length; i++){
+                Data.find({redirect_uri: {'$regex': getFQDN(user.data[i].redirect_uri[0]), "$options": "i" }})
+                .exec(function(err, data){
+                    var fqdnClient = {domain: "",
+                                      provider: []}
+                    if(data.length>0){
+                        fqdnClient.domain = getFQDN(data[0].redirect_uri[0])
+                    }
+                    var newFQDN = true
+                    for(var k=0; k<dataObject.fqdnClient.length; k++){
+                        if(dataObject.fqdnClient[k].domain == fqdnClient.domain)
+                            newFQDN = false
+                    }
+                    if(data.length==0 || !newFQDN){
+                        min ++
+                    } else {
+                        for(var j=0; j<data.length; j++){
+                            var provider = {client_id:data[j].client_id,
+                                            domain:data[j].domain,
+                                            scope:data[j].scope}
+                            for(var k=0; k<user.data.length; k++){
+                                if(user.data[k].client_id == provider.client_id)
+                                    provider.used = true
+                            }
+                            fqdnClient.provider.push(provider)
+                        }
+                        dataObject.fqdnClient.push(fqdnClient)
+                    }
+                    if(dataObject.fqdnClient.length == (user.data.length-min))
+                        res.send(dataObject)
+                })
+            }
+        })
+    })
 
 //router.get('/rm', function(req, res){
 //  Data.remove({}, function (err) {
