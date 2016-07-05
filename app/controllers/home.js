@@ -226,48 +226,58 @@ function getFQDN(URL){
         return 'invalid FQDN'
 }
 
+function getScopeDiff(user){
+    var dataObject = {user: user.user_id,
+                      fqdnClient: []}
+    var min = 0
+    return new Promise(function(resolve, reject){
+        for(var i=0; i<user.data.length; i++){
+            Data.find({redirect_uri: {'$regex': getFQDN(user.data[i].redirect_uri[0]), "$options": "i" }})
+            .exec(function(err, data){
+                var fqdnClient = {domain: "",
+                                  provider: []}
+                if(data.length>0){
+                    fqdnClient.domain = getFQDN(data[0].redirect_uri[0])
+                }
+                var newFQDN = true
+                for(var k=0; k<dataObject.fqdnClient.length; k++){
+                    if(dataObject.fqdnClient[k].domain == fqdnClient.domain)
+                        newFQDN = false
+                }
+                if(data.length==0 || !newFQDN){
+                    min ++ //Already seen
+                } else {
+                    for(var j=0; j<data.length; j++){
+                        var provider = {client_id:data[j].client_id,
+                                        domain:data[j].domain,
+                                        scope:data[j].scope}
+                        for(var k=0; k<user.data.length; k++){
+                            if(user.data[k].client_id == provider.client_id)
+                                provider.used = true
+                        }
+                        fqdnClient.provider.push(provider)
+                    }
+                    dataObject.fqdnClient.push(fqdnClient)
+                }
+                if(dataObject.fqdnClient.length >= (user.data.length-min)){
+                    resolve(dataObject)
+                }
+            })
+        }
+    })
+}
+
 router.get('/api/user/:user/view', function(req, res, next){
     User.findOne({user_id: req.params.user})
     .populate('data')
     .exec(function(err, user){
         if(err) res.send(err)
-        var dataObject = {user: user.user_id,
-                          fqdnClient: []}
-        var min = 0
-        for(var i=0; i<user.data.length; i++){
-                Data.find({redirect_uri: {'$regex': getFQDN(user.data[i].redirect_uri[0]), "$options": "i" }})
-                .exec(function(err, data){
-                    var fqdnClient = {domain: "",
-                                      provider: []}
-                    if(data.length>0){
-                        fqdnClient.domain = getFQDN(data[0].redirect_uri[0])
-                    }
-                    var newFQDN = true
-                    for(var k=0; k<dataObject.fqdnClient.length; k++){
-                        if(dataObject.fqdnClient[k].domain == fqdnClient.domain)
-                            newFQDN = false
-                    }
-                    if(data.length==0 || !newFQDN){
-                        min ++
-                    } else {
-                        for(var j=0; j<data.length; j++){
-                            var provider = {client_id:data[j].client_id,
-                                            domain:data[j].domain,
-                                            scope:data[j].scope}
-                            for(var k=0; k<user.data.length; k++){
-                                if(user.data[k].client_id == provider.client_id)
-                                    provider.used = true
-                            }
-                            fqdnClient.provider.push(provider)
-                        }
-                        dataObject.fqdnClient.push(fqdnClient)
-                    }
-                    if(dataObject.fqdnClient.length == (user.data.length-min))
-                        res.send(dataObject)
-                })
-            }
-        })
+        else {
+            getScopeDiff(user)
+            .then(function(dataObject){res.send(dataObject)})
+        }
     })
+})
 
 //router.get('/rm', function(req, res){
 //  Data.remove({}, function (err) {
