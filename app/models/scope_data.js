@@ -64,7 +64,7 @@ ClientSchema.statics.update = function(submitedData, domain, user){
     if(submitedData.client_id){
       var splitedScopes = []
       if(submitedData.scope){
-        splitedScopes = submitedData.scope.split(/%3A|%20|\+|,|\s/)
+        splitedScopes = submitedData.scope.split(/%3A|%20|%2C|\+|,|\s/)
         splitedScopes.push(submitedData.scope)
       }
       dataSchema.findOneAndUpdate(

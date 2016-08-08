@@ -22,6 +22,13 @@ block content
       each claims in data.claims
         li #{claims}
 
+  h4 acr_values
+    ul
+      each acr in data.acr_values
+        li #{acr}
+
+
+
   a(href='/data') back
   h4 users
     ul
