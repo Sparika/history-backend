@@ -17,7 +17,7 @@ var ClientSchema = new Schema({
 var UserSchema = new Schema({
   user_id: String,
   ua: [String],
-  data: [{ type: Schema.Types.ObjectId, ref: 'Data' }],
+  data: [{ type: Schema.Types.ObjectId, ref: 'Client' }],
   domain: [{type: String, ref: 'Domain'}]
 })
 
@@ -64,7 +64,7 @@ ClientSchema.statics.update = function(submitedData, domain, user){
     if(submitedData.client_id){
       var splitedScopes = []
       if(submitedData.scope){
-        splitedScopes = submitedData.scope.split(/%3A|%20|\+|,|\s/)
+        splitedScopes = submitedData.scope.split(/%3A|%20|%2C|\+|,|\s/)
         splitedScopes.push(submitedData.scope)
       }
       dataSchema.findOneAndUpdate(
