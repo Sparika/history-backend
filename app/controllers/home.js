@@ -272,10 +272,11 @@ router.get('/api/user/:user/view', function(req, res, next){
     .populate('data')
     .exec(function(err, user){
         if(err) res.send(err)
-        else {
+        else if(user) {
             getScopeDiff(user)
             .then(function(dataObject){res.send(dataObject)})
         }
+        else res.send('No user found for id '+req.params.user)
     })
 })
 
