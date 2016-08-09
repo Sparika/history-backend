@@ -189,6 +189,7 @@ router.get('/data/scope', function(req, res, next){
 })
 
 router.get('/api/all', function(req, res, next){
+console.log('test')
   User.find({}, function(err, user){
     if(err)
         user = err
@@ -314,14 +315,17 @@ router.get('/api/user/:user/view', function(req, res, next){
     })
 })
 
-router.get('/api/client/diff', function(req, res, next){
+router.get('/api/diff', function(req, res, next){
+console.log('in')
     Data.find()
     .populate('domain')
     .exec(function(err, data){
         if(err) res.send(err)
         else if(data) {
-            getScopeDiffAll(data)
+            getScopeDiffForAll(data)
             .then(function(dataArray){
+
+console.log('DATA: '+dataArray)
                 var dataObject = {
                     user: user.user_id,
                     fqdnClient: dataArray}
@@ -330,6 +334,8 @@ router.get('/api/client/diff', function(req, res, next){
         }
         else res.send('No data found')
     })
+
+console.log('out')
 })
 
 //router.get('/rm', function(req, res){
