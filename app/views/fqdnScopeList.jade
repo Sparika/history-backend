@@ -3,9 +3,10 @@ extends layout
 block content
   h1= title
   each fqdn in data
-    h2 #{fqdn.domain}
+    h2 Domain: #{fqdn.domain}
       each provider in fqdn.provider
         h3 #{provider.domain} #[a(href='/data/client/#{provider._id}') #{provider.client_id}]
+        rduri #{provider.redirect_uri}
         ul
           each scope in provider.scope
             li #{scope}

@@ -228,16 +228,17 @@ function getFQDN(URL){
 
 // DATA is an array of client who share redirect_uri FQDN
 function getAllScopeForFQDN(data, fqdn){
-
-    var fqdn = getFQDN(data[i].redirect_uri[0]),
-        fqdnClient = {domain: fqdn,
+    var fqdn = 'NULL'
+    if(data && data.length > 0) fqdn = getFQDN(data[0].redirect_uri[0])
+    var fqdnClient = {domain: fqdn,
                       provider: []}
     for(var j=0; j<data.length; j++){
         var provider = {
             client_id:data[j].client_id,
             _id:data[j]._id,
             domain:data[j].domain,
-            scope:data[j].scope}
+            scope:data[j].scope,
+            redirect_uri:data[j].redirect_uri}
         fqdnClient.provider.push(provider)
     }
     return fqdnClient
