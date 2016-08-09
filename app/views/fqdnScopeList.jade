@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  h1= title
+  each fqdn in data
+    h2 #{fqdn.domain}
+      ul
+      each provider in fqdn.provider
+        li h3 #{provider.domain}
+          h3 #[a(href='/data/client/#{provider._id}') #{provider.client_id}]
+          h4 scope
+          ul
+          each scope in provider.scope
+            li #{scope}
+
+  - var clientCount = data.length
+  #{clientCount} FQDN Clients

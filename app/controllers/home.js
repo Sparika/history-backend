@@ -233,6 +233,7 @@ function getAllScopeForFQDN(data, fqdn){
     for(var j=0; j<data.length; j++){
         var provider = {
             client_id:data[j].client_id,
+            _id:data[j]._id,
             domain:data[j].domain,
             scope:data[j].scope}
         fqdnClient.provider.push(provider)
@@ -325,6 +326,26 @@ router.get('/api/diff', function(req, res, next){
                     user: user.user_id,
                     fqdnClient: dataArray}
                 res.send(dataObject)
+            })
+        }
+        else res.send('No data found')
+    })
+})
+
+router.get('/data/diff', function(req, res, next){
+    Data.find()
+    .exec(function(err, data){
+        if(err) res.send(err)
+        else if(data) {
+            getScopeDiffForAll(data)
+            .then(function(dataArray){
+                var dataObject = {
+                    user: user.user_id,
+                    fqdnClient: dataArray}
+                res.render('fqdnScopeList', {
+                      title: Client Diff,
+                      data: dataObject
+                })
             })
         }
         else res.send('No data found')
