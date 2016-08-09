@@ -226,45 +226,74 @@ function getFQDN(URL){
         return 'invalid FQDN'
 }
 
-function getScopeDiff(user){
-    var dataObject = {user: user.user_id,
-                      fqdnClient: []}
-    var min = 0
-    return new Promise(function(resolve, reject){
-        for(var i=0; i<user.data.length; i++){
-            Data.find({redirect_uri: {'$regex': getFQDN(user.data[i].redirect_uri[0]), "$options": "i" }})
-            .exec(function(err, data){
-                var fqdnClient = {domain: "",
-                                  provider: []}
-                if(data.length>0){
-                    fqdnClient.domain = getFQDN(data[0].redirect_uri[0])
-                }
-                var newFQDN = true
-                for(var k=0; k<dataObject.fqdnClient.length; k++){
-                    if(dataObject.fqdnClient[k].domain == fqdnClient.domain)
-                        newFQDN = false
-                }
-                if(data.length==0 || !newFQDN){
-                    min ++ //Already seen
-                } else {
-                    for(var j=0; j<data.length; j++){
-                        var provider = {client_id:data[j].client_id,
-                                        domain:data[j].domain,
-                                        scope:data[j].scope}
-                        for(var k=0; k<user.data.length; k++){
-                            if(user.data[k].client_id == provider.client_id)
-                                provider.used = true
+// DATA is an array of client who share redirect_uri FQDN
+function getAllScopeForFQDN(data, fqdn){
+    var fqdnClient = {domain: fqdn,
+                      provider: []}
+    for(var j=0; j<data.length; j++){
+        var provider = {
+            client_id:data[j].client_id,
+            domain:data[j].domain,
+            scope:data[j].scope}
+        fqdnClient.provider.push(provider)
+    }
+    return fqdnClient
+}
+
+// Get a diff of scope for each CLIENT used by USER
+// Mark provider which registered USER for CLIENT
+function getScopeDiffForUser(user){
+    var fqdnList = [],
+        promises = []
+    for(var i=0; i<user.data.length; i++){
+        var fqdn = getFQDN(user.data[i].redirect_uri[0])
+        if(!fqdnList.contains(fqdn)){
+            fqdnList.push(fqdn)
+            var p = new Promise(function(resolve, reject){
+                Data.find({redirect_uri: {'$regex': fqdn, "$options": "i" }})
+                    .exec(function(err, data){
+                        if(err) reject(err)
+                        else {
+                            var scopeFQDN = getAllScopeForFQDN(data, fqdn)
+                            for(var j=0; j<scopeFQDN.provider.length; j++){
+                                for(var k=0; k<user.data.length; k++){
+                                    if(user.data[k].client_id == scopeFQDN.provider.client_id)
+                                        scopeFQDN.provider.used = true
+                                }
+                            }
+                            resolve(scopeDiffFQDN)
                         }
-                        fqdnClient.provider.push(provider)
-                    }
-                    dataObject.fqdnClient.push(fqdnClient)
-                }
-                if(dataObject.fqdnClient.length >= (user.data.length-min)){
-                    resolve(dataObject)
-                }
+                })
             })
+            promises.push(p)
         }
-    })
+    }
+    return Promise.all(promises)
+}
+
+// Get a diff of scope for all DATA
+function getScopeDiffForAll(data){
+    var fqdnList = [],
+        promises = []
+    for(var i=0; i<data.length; i++){
+        var fqdn = getFQDN(data[i].redirect_uri[0])
+        if(!fqdnList.contains(fqdn)){
+            fqdnList.push(fqdn)
+            var p = new Promise(function(resolve, reject){
+                Data.find({redirect_uri: {'$regex': fqdn, "$options": "i" }})
+                    .exec(function(err, data){
+                        if(err) reject(err)
+                        else {
+                            var scopeFQDN = getAllScopeForFQDN(data, fqdn)
+                            resolve(scopeDiffFQDN)
+                        }
+                })
+            })
+            promises.push(p)
+        }
+    }
+    return Promise.all(promises)
+
 }
 
 router.get('/api/user/:user/view', function(req, res, next){
@@ -273,10 +302,33 @@ router.get('/api/user/:user/view', function(req, res, next){
     .exec(function(err, user){
         if(err) res.send(err)
         else if(user) {
-            getScopeDiff(user)
-            .then(function(dataObject){res.send(dataObject)})
+            getScopeDiffForUser(user)
+            .then(function(dataArray){
+                var dataObject = {
+                    user: user.user_id,
+                    fqdnClient: dataArray}
+                res.send(dataObject)
+            })
         }
         else res.send('No user found for id '+req.params.user)
+    })
+})
+
+router.get('/api/client/diff', function(req, res, next){
+    Data.find()
+    .populate('domain')
+    .exec(function(err, data){
+        if(err) res.send(err)
+        else if(data) {
+            getScopeDiffAll(data)
+            .then(function(dataArray){
+                var dataObject = {
+                    user: user.user_id,
+                    fqdnClient: dataArray}
+                res.send(dataObject)
+            })
+        }
+        else res.send('No data found')
     })
 })
 
