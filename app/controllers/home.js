@@ -342,12 +342,9 @@ router.get('/data/diff', function(req, res, next){
         else if(data) {
             getScopeDiffForAll(data)
             .then(function(dataArray){
-                var dataObject = {
-                    user: user.user_id,
-                    fqdnClient: dataArray}
                 res.render('fqdnScopeList', {
-                      title: Client Diff,
-                      data: dataObject
+                      title: 'Client Diff',
+                      data: dataArray
                 })
             })
         }
