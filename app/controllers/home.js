@@ -224,9 +224,12 @@ function getFQDN(URL){
         var fqdn = URL.split('/')[2]
         if(fqdn.indexOf('.') > -1)
             return fqdn
+	else
+            return URL
     }
     // In invalid or incomplete case, use full URL
-    return URL
+    //console.log(URL)
+    return 'invalid FQDN'
 }
 
 // DATA is an array of client who share redirect_uri FQDN
