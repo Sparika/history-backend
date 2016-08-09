@@ -26,7 +26,7 @@ var config = {
     app: {
       name: 'history-backend'
     },
-    port: 8080,
+    port: 8081,
     db: 'mongodb://'+process.env.MONGO_PORT_27017_TCP_ADDR+':'+process.env.MONGO_PORT_27017_TCP_PORT
   }
 };
