@@ -315,17 +315,20 @@ router.get('/api/user/:user/view', function(req, res, next){
 })
 
 router.get('/api/diff', function(req, res, next){
+	console.log('in')
     Data.find()
     .exec(function(err, data){
         if(err) res.send(err)
         else if(data) {
+	console.log('found data')
             getScopeDiffForAll(data)
             .then(function(dataArray){
-                var dataObject = {
-                    user: user.user_id,
+		var dataObject = {
                     fqdnClient: dataArray}
-                res.send(dataObject)
+                console.log(dataObject)
+		res.send(dataObject)
             })
+	    .catch(function(err){console.log(err)})
         }
         else res.send('No data found')
     })
