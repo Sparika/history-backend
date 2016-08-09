@@ -220,9 +220,13 @@ router.get('/api/client/fqdn/:fqdn', function(req, res, next){
 })
 
 function getFQDN(URL){
-    if(URL && URL.split('/').length > 3)
-        return URL.split('/')[2]
-    else
+    if(URL && URL.split('/').length > 3){
+        var fqdn = URL.split('/')[2]
+        if(fqdn.indexOf('.') > -1)
+            return fqdn
+        else
+            return 'incomplete FQDN'
+    } else
         return 'invalid FQDN'
 }
 
