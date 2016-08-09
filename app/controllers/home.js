@@ -261,7 +261,7 @@ function getScopeDiffForUser(user){
                                         scopeFQDN.provider.used = true
                                 }
                             }
-                            resolve(scopeDiffFQDN)
+                            resolve(scopeFQDN)
                         }
                 })
             })
@@ -285,7 +285,7 @@ function getScopeDiffForAll(data){
                         if(err) reject(err)
                         else {
                             var scopeFQDN = getAllScopeForFQDN(data, fqdn)
-                            resolve(scopeDiffFQDN)
+                            resolve(scopeFQDN)
                         }
                 })
             })
