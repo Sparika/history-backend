@@ -247,7 +247,7 @@ function getScopeDiffForUser(user){
         promises = []
     for(var i=0; i<user.data.length; i++){
         var fqdn = getFQDN(user.data[i].redirect_uri[0])
-        if(!fqdnList.includes(fqdn)){
+        if(!fqdnList.indexOf(fqdn)>-1){
             fqdnList.push(fqdn)
             var p = new Promise(function(resolve, reject){
                 Data.find({redirect_uri: {'$regex': fqdn, "$options": "i" }})
@@ -277,7 +277,7 @@ function getScopeDiffForAll(data){
         promises = []
     for(var i=0; i<data.length; i++){
         var fqdn = getFQDN(data[i].redirect_uri[0])
-        if(!fqdnList.includes(fqdn)){
+        if(!fqdnList.indexOf(fqdn)>-1){
             fqdnList.push(fqdn)
             var p = new Promise(function(resolve, reject){
                 Data.find({redirect_uri: {'$regex': fqdn, "$options": "i" }})
