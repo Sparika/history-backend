@@ -228,7 +228,9 @@ function getFQDN(URL){
 
 // DATA is an array of client who share redirect_uri FQDN
 function getAllScopeForFQDN(data, fqdn){
-    var fqdnClient = {domain: fqdn,
+
+    var fqdn = getFQDN(data[i].redirect_uri[0]),
+        fqdnClient = {domain: fqdn,
                       provider: []}
     for(var j=0; j<data.length; j++){
         var provider = {
@@ -255,7 +257,7 @@ function getScopeDiffForUser(user){
                     .exec(function(err, data){
                         if(err) reject(err)
                         else {
-                            var scopeFQDN = getAllScopeForFQDN(data, fqdn)
+                            var scopeFQDN = getAllScopeForFQDN(data)
                             for(var j=0; j<scopeFQDN.provider.length; j++){
                                 for(var k=0; k<user.data.length; k++){
                                     if(user.data[k].client_id == scopeFQDN.provider.client_id)
@@ -285,7 +287,7 @@ function getScopeDiffForAll(data){
                     .exec(function(err, data){
                         if(err) reject(err)
                         else {
-                            var scopeFQDN = getAllScopeForFQDN(data, fqdn)
+                            var scopeFQDN = getAllScopeForFQDN(data)
                             resolve(scopeFQDN)
                         }
                 })
