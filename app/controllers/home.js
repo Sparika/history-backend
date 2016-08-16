@@ -330,10 +330,43 @@ router.get('/api/diff', function(req, res, next){
 	console.log('found data')
             getScopeDiffForAll(data)
             .then(function(dataArray){
-		var dataObject = {
-                    fqdnClient: dataArray}
-                console.log(dataObject)
+		var dataObject = {fqdnClient: dataArray}
 		res.send(dataObject)
+            })
+	    .catch(function(err){console.log(err)})
+        }
+        else res.send('No data found')
+    })
+})
+
+router.get('/api/diff/matrix', function(req, res, next){
+	console.log('in')
+    Data.find()
+    .exec(function(err, data){
+        if(err) res.send(err)
+        else if(data) {
+	console.log('found data')
+            getScopeDiffForAll(data)
+            .then(function(dataArray){
+                var csvArray = [["Client"]]
+                var providerIndex = {}
+                var maxIndex = 1
+                for(var i=0; i<dataArray.length; i++){
+                    var csvLine = [dataArray[i].domain]
+                    for(var j=0; j<dataArray[i].provider.length; j++){
+                        var idp = dataArray[i].provider[j].domain[0]
+                        var index = providerIndex[idp]
+                        if(!index){
+                            index = maxIndex
+                            providerIndex[idp] = index
+                            csvArray[0].push(idp)
+                            maxIndex++
+                        }
+                        csvLine[index] = dataArray[i].provider[j].scope
+                    }
+                    csvArray.push(csvLine)
+                }
+                res.send(csvArray.toString())
             })
 	    .catch(function(err){console.log(err)})
         }
